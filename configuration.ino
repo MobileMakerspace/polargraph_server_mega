@@ -19,10 +19,33 @@ Comment out the blocks of code you don't need.
 
 // =================================================================
 // 1. Adafruit motorshield 
+#define ADAFRUIT_V2_MOTORSHIELD 1
 
+#if ADAFRUIT_V2_MOTORSHIELD
+#include <Wire.h>
+#include <Adafruit_MotorShield.h>
+#include "utility/Adafruit_PWMServoDriver.h"
+#else
 #include <AFMotor.h>
+#endif
+
 const int stepType = INTERLEAVE;
 
+#if ADAFRUIT_V2_MOTORSHIELD
+Adafruit_MotorShield AFMS = Adafruit_MotorShield();
+
+Adafruit_StepperMotor *afsm_a = AFMS.getStepper(motorStepsPerRev, 2);
+Adafruit_StepperMotor *afsm_b = AFMS.getStepper(motorStepsPerRev, 1);
+
+void forwarda() { afsm_a->onestep(FORWARD, stepType); }
+void backwarda() { afsm_a->onestep(BACKWARD, stepType); }
+AccelStepper motorA(forwarda, backwarda);
+
+void forwardb() { afsm_b->onestep(FORWARD, stepType); }
+void backwardb() { afsm_b->onestep(BACKWARD, stepType); }
+AccelStepper motorB(forwardb, backwardb);
+
+#else
 AF_Stepper afMotorA(motorStepsPerRev, 1);
 AF_Stepper afMotorB(motorStepsPerRev, 2);
 
@@ -33,10 +56,15 @@ AccelStepper motorA(forwarda, backwarda);
 void forwardb() { afMotorB.onestep(FORWARD, stepType); }
 void backwardb() { afMotorB.onestep(BACKWARD, stepType); }
 AccelStepper motorB(forwardb, backwardb);
+#endif
 
 void configuration_motorSetup()
 {
+#if ADAFRUIT_V2_MOTORSHIELD
+	AFMS.begin();
+#else
   // no initial setup for these kinds of motor drivers
+#endif  
 }
 
 // =================================================================
@@ -62,7 +90,7 @@ void configuration_setup()
   defaultMmPerRev = 95;
   defaultStepsPerRev = 400;
   defaultStepMultiplier = 1;
-  sd_initSD();
+  //sd_initSD();
   delay(500);
 }
 // end of Adafruit motorshield definition
